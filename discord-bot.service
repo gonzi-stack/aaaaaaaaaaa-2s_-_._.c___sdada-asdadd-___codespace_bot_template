@@ -1,0 +1,38 @@
+[Unit]
+Description=Discord Bot Service
+Documentation=https://github.com/your-org/discordbot-template
+After=network-online.target postgresql.service redis.service
+Wants=network-online.target
+Requires=postgresql.service redis.service
+
+[Service]
+Type=simple
+User=discordbot
+Group=discordbot
+WorkingDirectory=/opt/discordbot
+ExecStart=/usr/bin/node dist/index.js
+Restart=always
+RestartSec=10
+
+# Entorno
+Environment=NODE_ENV=production
+EnvironmentFile=/opt/discordbot/.env
+
+# Límites de recursos
+LimitNOFILE=65536
+LimitNPROC=4096
+
+# Seguridad
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+ReadWritePaths=/opt/discordbot
+PrivateTmp=yes
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=discord-bot
+
+[Install]
+WantedBy=multi-user.target

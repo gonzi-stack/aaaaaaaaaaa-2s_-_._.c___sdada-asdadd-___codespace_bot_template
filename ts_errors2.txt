@@ -1,0 +1,6 @@
+src/commands/slash/config.ts(67,11): error TS2353: Object literal may only specify known properties, and 'autocomplete' does not exist in type 'SlashCommand'.
+src/lib/audit-logger.ts(46,38): error TS2345: Argument of type '{ embeds: EmbedBuilder[]; username: string; avatarURL: string | undefined; }' is not assignable to parameter of type 'string | WebhookMessageCreateOptions | MessagePayload'.
+  Type '{ embeds: EmbedBuilder[]; username: string; avatarURL: string | undefined; }' is not assignable to type 'WebhookMessageCreateOptions' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+    Types of property 'avatarURL' are incompatible.
+      Type 'string | undefined' is not assignable to type 'string'.
+        Type 'undefined' is not assignable to type 'string'.

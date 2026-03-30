@@ -1,0 +1,43 @@
+# Dependencias
+node_modules/
+
+# Build output
+dist/
+
+# Variables de entorno
+.env
+.env.*
+!.env.example
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# PM2
+.pm2/
+ecosystem.config.*
+
+# TypeScript
+*.tsbuildinfo
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Debug
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage / Testing
+coverage/
+.nyc_output/
