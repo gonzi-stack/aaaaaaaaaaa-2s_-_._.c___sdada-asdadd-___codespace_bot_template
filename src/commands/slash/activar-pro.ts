@@ -52,8 +52,9 @@ async function execute(interaction: ChatInputCommandInteraction, client: BotClie
         );
         
         await interaction.editReply({ embeds: [embed] });
-    } catch (error) {
-        console.error(error);
+    } catch (err) {
+        const { createChildLogger } = await import('../../lib/logger.js');
+        createChildLogger({ module: 'cmd:activar-pro' }).error({ err }, 'Error al activar FurGuard Pro');
         await interaction.editReply({ embeds: [createErrorEmbed('Error', 'Hubo un error al activar FurGuard Pro.')] });
     }
 }

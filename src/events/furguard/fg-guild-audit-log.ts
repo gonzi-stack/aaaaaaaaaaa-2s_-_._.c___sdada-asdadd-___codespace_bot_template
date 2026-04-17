@@ -8,6 +8,7 @@ import { CacheKeys } from '../../cache/keys.js';
 import { createBrandedEmbed } from '../../lib/embed-builder.js';
 import { sendAuditLog } from '../../lib/fg-audit.js';
 import { broadcastAlert } from '../../lib/fg-cowork-broadcast.js';
+import { evaluateCopilotTriggers } from '../../lib/fg-copilot-triggers.js';
 import { createChildLogger } from '../../lib/logger.js';
 
 const log = createChildLogger({ module: 'fg-event:auditLog' });
@@ -38,14 +39,36 @@ export default {
             const executorId = entry.executorId;
             if (!executorId) return;
 
-            if (executorId === client.user.id) return;
+        if (executorId === client.user.id) return;
 
-            const isBanOrDelete = entry.action === AuditLogEvent.MemberBanAdd ||
-                                   entry.action === AuditLogEvent.MessageBulkDelete;
-            const isDestructive = entry.action === AuditLogEvent.ChannelDelete ||
-                                   entry.action === AuditLogEvent.RoleDelete ||
-                                   entry.action === AuditLogEvent.ChannelCreate ||
-                                   entry.action === AuditLogEvent.RoleCreate;
+        // Determine Copilot trigger type
+        let eventType: string;
+        switch (entry.action) {
+            case AuditLogEvent.ChannelDelete:
+            case AuditLogEvent.ChannelCreate:
+                eventType = 'CHANNEL_MANIPULATION';
+                break;
+            case AuditLogEvent.RoleDelete:
+            case AuditLogEvent.RoleCreate:
+                eventType = 'ROLE_MANIPULATION';
+                break;
+            case AuditLogEvent.MemberBanAdd:
+            case AuditLogEvent.MessageBulkDelete:
+                eventType = 'MODERATION_ACTION_SPIKE';
+                break;
+            default:
+                eventType = 'AUDIT_LOG_SPIKE';
+        }
+
+        await evaluateCopilotTriggers(
+            guild.id,
+            eventType,
+            { action: entry.action, executorId },
+            client,
+        );
+
+        const isBanOrDelete = entry.action === AuditLogEvent.MemberBanAdd ||
+                               entry.action === AuditLogEvent.MessageBulkDelete;
 
             const nukeKey = CacheKeys.fg.nukeWindow(guild.id, executorId);
             const raw = await client.cacheManager.get(nukeKey);

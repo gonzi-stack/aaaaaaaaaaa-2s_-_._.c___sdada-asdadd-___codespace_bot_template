@@ -1,4 +1,4 @@
-import type { RowDataPacket } from 'mysql2/promise';
+import type { RowDataPacket, ResultSetHeader } from 'mysql2/promise';
 import { pool } from '../connection.js';
 
 export class CooldownRepository {
@@ -28,7 +28,7 @@ export class CooldownRepository {
     }
 
     async sweepExpired(): Promise<number> {
-        const [result] = await pool.query<any>(
+        const [result] = await pool.query<ResultSetHeader>(
             'DELETE FROM user_cooldowns WHERE expiresAt <= ?',
             [Date.now()]
         );

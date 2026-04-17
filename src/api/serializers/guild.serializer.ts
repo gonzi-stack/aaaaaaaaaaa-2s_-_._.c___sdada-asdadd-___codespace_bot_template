@@ -1,3 +1,4 @@
+import { ChannelType as CT, GuildMFALevel, OverwriteType } from 'discord.js';
 import type {
     Guild,
     NonThreadGuildBasedChannel,
@@ -8,7 +9,6 @@ import type {
     PermissionsBitField,
     ThreadChannel,
     ChannelType,
-    Snowflake,
 } from 'discord.js';
 
 /* ------------------------------------------------------------------ */
@@ -183,17 +183,16 @@ export async function serializeGuild(guild: Guild): Promise<SerializedGuild> {
         .sort((a, b) => a.position - b.position);
 
     for (const channel of allChannels.values()) {
-        if (channel.type === 4) {
-            // ChannelType.GuildCategory = 4
+        if (channel.type === CT.GuildCategory) {
             categories.set(channel.id, {
-                category: channel as CategoryChannel,
+                category: channel,
                 channels: [],
             });
         }
     }
 
     for (const channel of allChannels.values()) {
-        if (channel.type === 4) continue;
+        if (channel.type === CT.GuildCategory) continue;
 
         const parentId = channel.parentId;
         if (parentId && categories.has(parentId)) {
@@ -241,7 +240,7 @@ export async function serializeGuild(guild: Guild): Promise<SerializedGuild> {
         premiumSubscriptionCount: guild.premiumSubscriptionCount,
         verificationLevel: verificationLevelToString(guild.verificationLevel),
         explicitContentFilter: explicitContentFilterToString(guild.explicitContentFilter),
-        mfaLevel: guild.mfaLevel === 1 ? 'Elevated' : 'None',
+        mfaLevel: guild.mfaLevel === GuildMFALevel.Elevated ? 'Elevated' as const : 'None' as const,
         nsfwLevel: nsfwLevelToString(guild.nsfwLevel),
         vanityURLCode: guild.vanityURLCode,
         preferredLocale: guild.preferredLocale,
@@ -327,7 +326,7 @@ function serializePermissionOverwrites(channel: NonThreadGuildBasedChannel): Ser
     const overwrites = (channel as TextChannel).permissionOverwrites.cache;
     return overwrites.map((ow) => ({
         id: ow.id,
-        type: ow.type === 0 ? 'role' : 'member',
+        type: ow.type === OverwriteType.Role ? 'role' as const : 'member' as const,
         allow: permissionsToArray(ow.allow),
         deny: permissionsToArray(ow.deny),
     }));
@@ -368,8 +367,8 @@ function serializeRole(role: Role): SerializedRole {
         createdTimestamp: role.createdTimestamp,
         memberCount: role.members.size,
         tags: role.tags ? {
-            botId: (role.tags.botId as Snowflake | undefined) ?? null,
-            integrationId: (role.tags.integrationId as Snowflake | undefined) ?? null,
+            botId: role.tags.botId ?? null,
+            integrationId: role.tags.integrationId ?? null,
             premiumSubscriberRole: role.tags.premiumSubscriberRole ?? false,
         } : null,
     };

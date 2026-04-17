@@ -125,7 +125,7 @@ export class BotClient extends Client<true> {
         this.webhooks.destroy();
         await this.cacheManager.disconnect();
         await closePool();
-        this.destroy();
+        void this.destroy();
         this.logger.info('Bot apagado correctamente');
     }
 }

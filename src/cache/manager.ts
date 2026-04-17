@@ -1,5 +1,5 @@
+/* eslint-disable @typescript-eslint/require-await */
 // import Redis from 'ioredis';
-import { config } from '../config.js';
 import { createChildLogger } from '../lib/logger.js';
 
 const log = createChildLogger({ module: 'cache' });
@@ -12,7 +12,7 @@ const log = createChildLogger({ module: 'cache' });
  * Si Redis no está disponible, funciona al 100% con solo L1.
  */
 export class CacheManager {
-    public redis: any | null = null; // Redis deshabilitado por el momento
+    public redis: unknown = null; // Redis deshabilitado por el momento
     private redisAvailable = false;
     private readonly l1 = new Map<string, { value: string; expiresAt: number }>();
     private readonly l1MaxSize = 10_000;

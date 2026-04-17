@@ -8,7 +8,7 @@ export default {
     name: 'guildMemberRemove',
     once: false,
 
-    async execute(member: GuildMember | PartialGuildMember, client: BotClient): Promise<void> {
+    execute(member: GuildMember | PartialGuildMember, _client: BotClient): void {
         log.debug({ guildId: member.guild.id, userId: member.id }, 'Miembro salió del servidor');
     },
 };

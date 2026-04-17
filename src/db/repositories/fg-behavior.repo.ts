@@ -71,7 +71,7 @@ class FgBehaviorRepository {
         }
     }
 
-    async getFullProfile(guildId: string, userId: string, cache?: CacheManager): Promise<FgFullProfile | null> {
+    async getFullProfile(guildId: string, userId: string, _cache?: CacheManager): Promise<FgFullProfile | null> {
         const [rows] = await pool.query<RowDataPacket[]>(
             `SELECT bp.*, COALESCE(rs.score, 0) AS riskScore
              FROM fg_behavior_profiles bp

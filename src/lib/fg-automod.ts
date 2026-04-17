@@ -1,5 +1,4 @@
 import {
-    AutoModerationRuleKeywordPresetType,
     AutoModerationRuleTriggerType,
     AutoModerationActionType,
     AutoModerationRuleEventType,
@@ -105,8 +104,9 @@ export async function setupAutomodRules(guild: Guild): Promise<number> {
             );
 
             created++;
-        } catch (err: any) {
-            if (err?.code === 50035 && err?.message?.includes('AUTO_MODERATION_MAX')) {
+        } catch (err: unknown) {
+            const discordErr = err as { code?: number; message?: string };
+            if (discordErr.code === 50035 && discordErr.message?.includes('AUTO_MODERATION_MAX')) {
                 log.warn({ guildId: guild.id, ruleType: def.ruleType }, 'Límite de AutoMod alcanzado; omitiendo regla');
             } else {
                 log.error({ err, guildId: guild.id, ruleType: def.ruleType }, 'Error creando regla AutoMod');
@@ -152,8 +152,9 @@ export async function syncAutomodRules(guildId: string, guild: Guild): Promise<v
                     );
 
                     log.info({ guildId, ruleType: dbRule.ruleType }, 'Regla AutoMod recreada');
-                } catch (err: any) {
-                    if (err?.code === 50035 && err?.message?.includes('AUTO_MODERATION_MAX')) {
+                } catch (err: unknown) {
+                    const discordErr = err as { code?: number; message?: string };
+                    if (discordErr.code === 50035 && discordErr.message?.includes('AUTO_MODERATION_MAX')) {
                         log.warn({ guildId, ruleType: dbRule.ruleType }, 'Límite de AutoMod alcanzado; omitiendo recreación');
                     } else {
                         log.error({ err, guildId, ruleType: dbRule.ruleType }, 'Error recreando regla AutoMod');

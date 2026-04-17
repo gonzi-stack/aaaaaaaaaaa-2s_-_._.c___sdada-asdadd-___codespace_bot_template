@@ -76,6 +76,18 @@ export const FG_MOD_ACTIONS = {
     NOTE: 'note',
 } as const;
 
+export const FG_ADAPTIVE = {
+    CHECK_INTERVAL_MS: 300_000, // 5 minutos
+    ACTIVITY_WINDOW_MS: 300_000, // 5 minutos
+    MESSAGE_THRESHOLD: 50, // mensajes en ventana
+    UNIQUE_USERS_THRESHOLD: 10, // usuarios distintos en ventana
+    INTENSITY_RATIO: 5, // mensajes por usuario promedio
+} as const;
+
+export const FG_COPILOT = {
+    DEFAULT_ANALYSIS_DAYS: 7,
+} as const;
+
 export type FgTier = typeof FG_TIER[keyof typeof FG_TIER];
 export type FgTolerance = typeof FG_TOLERANCE[keyof typeof FG_TOLERANCE];
 export type FgModAction = typeof FG_MOD_ACTIONS[keyof typeof FG_MOD_ACTIONS];

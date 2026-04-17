@@ -1,4 +1,4 @@
-import type { Message, GuildMember } from 'discord.js';
+import type { Message } from 'discord.js';
 import type { BotClient } from '../../bot.js';
 import { MessageParser } from '../../lib/command-parser.js';
 import { CacheKeys } from '../../cache/keys.js';
@@ -62,7 +62,7 @@ export default {
         }
 
         // Verificar permisos
-        const permCheck = checkPermissions(message.member as GuildMember | null, command.permissions);
+        const permCheck = checkPermissions(message.member, command.permissions);
         if (!permCheck.allowed) {
             await sendPermissionError(message, permCheck.missing);
             return;

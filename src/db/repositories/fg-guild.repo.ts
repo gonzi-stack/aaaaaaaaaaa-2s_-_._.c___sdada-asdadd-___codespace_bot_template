@@ -1,4 +1,4 @@
-import type { RowDataPacket, ResultSetHeader } from 'mysql2/promise';
+import type { RowDataPacket } from 'mysql2/promise';
 import { pool } from '../connection.js';
 import { CacheKeys } from '../../cache/keys.js';
 import { FG_CACHE_TTL, FG_TIER } from '../../constants/furguard.js';

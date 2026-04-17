@@ -1,11 +1,9 @@
 import { ChannelType, PermissionsBitField } from 'discord.js';
 import type { Guild, GuildChannel } from 'discord.js';
-import { fgProRepo } from '../db/repositories/fg-pro.repo.js';
 import { fgGuildRepo } from '../db/repositories/fg-guild.repo.js';
-import { fgRiskRepo } from '../db/repositories/fg-risk.repo.js';
 import { FG_RISK, FG_SLOWMODE_SECONDS } from '../constants/furguard.js';
 import { CacheKeys } from '../cache/keys.js';
-import { createErrorEmbed, createBrandedEmbed } from './embed-builder.js';
+import { createBrandedEmbed } from './embed-builder.js';
 import { createChildLogger } from './logger.js';
 import type { BotClient } from '../bot.js';
 import type { RowDataPacket } from 'mysql2/promise';
@@ -140,13 +138,8 @@ async function applySlowmode(guild: Guild): Promise<void> {
     }
 }
 
-async function banCriticalUsers(guild: Guild, client: BotClient): Promise<void> {
+async function banCriticalUsers(guild: Guild, _client: BotClient): Promise<void> {
     try {
-        const staleScores = await fgRiskRepo.getAllStaleScores();
-        const criticalInGuild = staleScores.filter(
-            s => s.guildId === guild.id && s.score >= FG_RISK.THRESHOLD_RED,
-        );
-
         const [allCritical] = await pool.query<RowDataPacket[]>(
             'SELECT userId, score FROM fg_risk_scores WHERE guildId = ? AND score >= ?',
             [guild.id, FG_RISK.THRESHOLD_RED],

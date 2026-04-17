@@ -1,11 +1,10 @@
-import { PermissionsBitField } from 'discord.js';
 import type { Guild } from 'discord.js';
 import { FG_RISK, FG_TOLERANCE } from '../constants/furguard.js';
 import type { FgTolerance } from '../constants/furguard.js';
 import { fgRiskRepo } from '../db/repositories/fg-risk.repo.js';
 import { fgModRepo } from '../db/repositories/fg-mod.repo.js';
 import { fgBehaviorRepo } from '../db/repositories/fg-behavior.repo.js';
-import { createWarningEmbed, createErrorEmbed } from './embed-builder.js';
+import { createWarningEmbed } from './embed-builder.js';
 import { createChildLogger } from './logger.js';
 import type { BotClient } from '../bot.js';
 

@@ -9,7 +9,8 @@ import { runMigrations } from '../../db/run-migrations.js';
 import { startHealthServer } from '../../health.js';
 import { decayAllScores } from '../../lib/fg-risk-engine.js';
 import { checkDeadHand } from '../../lib/fg-deadhand.js';
-import { FG_RISK, FG_DEADHAND } from '../../constants/furguard.js';
+import { runAdaptiveModerationJob } from '../../lib/fg-adaptive.js';
+import { FG_RISK, FG_DEADHAND, FG_ADAPTIVE } from '../../constants/furguard.js';
 
 const log = createChildLogger({ module: 'event:ready' });
 
@@ -54,6 +55,12 @@ export default {
             void checkDeadHand(client);
         }, FG_DEADHAND.CHECK_INTERVAL_MS);
         log.info('FurGuard: Job de Dead Hand iniciado');
+
+        // 7. FurGuard: Job de Moderación Adaptativa
+        setInterval(() => {
+            void runAdaptiveModerationJob(client);
+        }, FG_ADAPTIVE.CHECK_INTERVAL_MS);
+        log.info('FurGuard: Job de Moderación Adaptativa iniciado');
 
         log.info('Todos los sistemas inicializados correctamente!');
     },

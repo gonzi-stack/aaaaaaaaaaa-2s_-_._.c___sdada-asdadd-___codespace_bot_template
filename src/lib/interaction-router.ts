@@ -25,24 +25,23 @@ export class InteractionRouter {
     async route(interaction: Interaction, client: BotClient): Promise<void> {
         const guildId = interaction.guildId ?? null;
         
-        await import('./context.js').then(({ commandContext }) => {
-            commandContext.run({ guildId, client }, async () => {
-                try {
-                    if (interaction.isChatInputCommand()) {
-                        await this.handleSlashCommand(interaction, client);
-                    } else if (interaction.isButton()) {
-                        await this.handleButton(interaction, client);
-                    } else if (interaction.isModalSubmit()) {
-                        await this.handleModal(interaction, client);
-                    } else if (interaction.isAnySelectMenu()) {
-                        await this.handleSelect(interaction, client);
-                    } else if (interaction.isAutocomplete()) {
-                        await this.handleAutocomplete(interaction, client);
-                    }
-                } catch (err) {
-                    log.error({ err, interactionId: interaction.id }, 'Error no capturado en el router de interacciones');
+        const { commandContext } = await import('./context.js');
+        await commandContext.run({ guildId, client }, async () => {
+            try {
+                if (interaction.isChatInputCommand()) {
+                    await this.handleSlashCommand(interaction, client);
+                } else if (interaction.isButton()) {
+                    await this.handleButton(interaction, client);
+                } else if (interaction.isModalSubmit()) {
+                    await this.handleModal(interaction, client);
+                } else if (interaction.isAnySelectMenu()) {
+                    await this.handleSelect(interaction, client);
+                } else if (interaction.isAutocomplete()) {
+                    await this.handleAutocomplete(interaction, client);
                 }
-            });
+            } catch (err) {
+                log.error({ err, interactionId: interaction.id }, 'Error no capturado en el router de interacciones');
+            }
         });
     }
 

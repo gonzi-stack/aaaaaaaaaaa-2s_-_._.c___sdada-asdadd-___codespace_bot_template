@@ -33,7 +33,7 @@ async function execute(interaction: ChatInputCommandInteraction, client: BotClie
     const userId = interaction.user.id;
     const cacheKey = `fg:clear_spam:${guildId}:${userId}`;
     const rawCache = await client.cacheManager.get(cacheKey);
-    const uses: number[] = rawCache ? JSON.parse(rawCache) : [];
+    const uses: number[] = rawCache ? (JSON.parse(rawCache) as number[]) : [];
     const now = Date.now();
     
     // Contar cuántas veces usó el bot en los últimos 30 segundos
@@ -100,10 +100,10 @@ async function execute(interaction: ChatInputCommandInteraction, client: BotClie
             setTimeout(() => {
                 interaction.deleteReply().catch(() => {});
             }, 5000);
-        } catch (ignored) {
+        } catch {
             // Ignorar el error de Unknown Message si casualmente algo eliminó la respuesta
         }
-    } catch (err) {
+    } catch {
         await interaction.editReply({ 
             embeds: [createErrorEmbed('Error', 'No pude eliminar todos los mensajes. Quizás tienen más de 14 días (límite de Discord).')] 
         }).catch(() => {});

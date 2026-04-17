@@ -4,8 +4,9 @@ import { fgGuildRepo } from '../../db/repositories/fg-guild.repo.js';
 import { fgRiskRepo } from '../../db/repositories/fg-risk.repo.js';
 import { fgProRepo } from '../../db/repositories/fg-pro.repo.js';
 import { CacheKeys } from '../../cache/keys.js';
-import { FG_RISK, FG_SPAM } from '../../constants/furguard.js';
+import { FG_RISK, FG_SPAM, FG_ADAPTIVE } from '../../constants/furguard.js';
 import { evaluateAndAct } from '../../lib/fg-risk-engine.js';
+import { triggerMessageSpike } from '../../lib/fg-copilot-triggers.js';
 import { createChildLogger } from '../../lib/logger.js';
 
 const log = createChildLogger({ module: 'fg-event:messageCreate' });
@@ -30,6 +31,8 @@ export default {
             if (await fgGuildRepo.isPro(guildId, client.cacheManager)) {
                 await recordHeatmapPoint(message, client, guildId);
             }
+
+            await trackMessageActivity(message, client, guildId);
         } catch (err) {
             log.error({ err, guildId }, 'Error en messageCreate de FurGuard');
         }
@@ -104,5 +107,47 @@ async function recordHeatmapPoint(message: Message, client: BotClient, guildId: 
         await fgProRepo.insertHeatmapPoint(pointData);
     } catch {
         log.debug({ guildId }, 'Error registrando heatmap point');
+    }
+}
+
+async function trackMessageActivity(message: Message, client: BotClient, guildId: string): Promise<void> {
+    try {
+        const windowSeconds = FG_ADAPTIVE.ACTIVITY_WINDOW_MS / 1000;
+        const key = CacheKeys.fg.copilotMessageCount(guildId);
+        
+        // Get existing timestamps
+        const raw = await client.cacheManager.get(key);
+        let data: { t: number; u: string }[] = [];
+        if (raw) {
+            try {
+                const parsed = JSON.parse(raw) as unknown;
+                if (Array.isArray(parsed) && parsed.length > 0 && typeof parsed[0] === 'object' && 't' in parsed[0]) {
+                    data = parsed as { t: number; u: string }[];
+                }
+            } catch {
+                // ignore
+            }
+        }
+        
+        const now = Date.now();
+        const windowMs = FG_ADAPTIVE.ACTIVITY_WINDOW_MS;
+        
+        // Filter recent timestamps
+        const recent = data.filter(item => now - item.t < windowMs);
+        recent.push({ t: now, u: message.author.id });
+        
+        // Store updated list
+        await client.cacheManager.set(key, JSON.stringify(recent), windowSeconds);
+        
+        // Check spike threshold
+        if (recent.length >= 200) {
+            const uniqueUsers = new Set(recent.map(d => d.u)).size;
+            await triggerMessageSpike(guildId, recent.length, uniqueUsers, windowSeconds / 60, client);
+            
+            // Clear timestamps after triggering
+            await client.cacheManager.del(key);
+        }
+    } catch (err) {
+        log.debug({ err, guildId }, 'Error tracking message activity for Copilot');
     }
 }

@@ -57,6 +57,24 @@ export interface FgAdaptiveConfigRow {
     updatedAt: Date;
 }
 
+export interface FgCopilotConfigRow {
+    guildId: string;
+    enabled: number;
+    lastAnalyzedAt: Date | null;
+    configSnapshot: string | null;
+    updatedAt: Date;
+}
+
+export interface FgCopilotLogRow {
+    id: string;
+    guildId: string;
+    action: string;
+    details: string;
+    success: number;
+    error: string | null;
+    performedAt: Date;
+}
+
 class FgProRepository {
     async getAntiraidConfig(guildId: string): Promise<FgAntiraidConfigRow | null> {
         const [rows] = await pool.query<RowDataPacket[]>(
@@ -244,7 +262,7 @@ class FgProRepository {
             'SELECT * FROM fg_antiraid_events WHERE guildId = ? ORDER BY triggeredAt DESC LIMIT 1',
             [guildId],
         );
-        return (rows[0] as RowDataPacket | undefined) ?? null;
+        return rows[0] ?? null;
     }
 
     async getHeatmapPoints(guildId: string, userId: string, limit: number): Promise<RowDataPacket[]> {
@@ -269,6 +287,41 @@ class FgProRepository {
             `INSERT INTO fg_heatmap_points (id, guildId, userId, channelId, interactedWith, riskDelta)
              VALUES (?, ?, ?, ?, ?, ?)`,
             [id, data.guildId, data.userId, data.channelId, data.interactedWith ?? null, data.riskDelta],
+        );
+    }
+
+    async getCopilotConfig(guildId: string): Promise<FgCopilotConfigRow | null> {
+        const [rows] = await pool.query<RowDataPacket[]>(
+            'SELECT * FROM fg_copilot_config WHERE guildId = ?',
+            [guildId],
+        );
+        return (rows[0] as FgCopilotConfigRow | undefined) ?? null;
+    }
+
+    async setCopilotConfig(guildId: string, data: Partial<Omit<FgCopilotConfigRow, 'guildId' | 'updatedAt'>>): Promise<void> {
+        await pool.query(
+            `INSERT INTO fg_copilot_config (guildId, enabled, lastAnalyzedAt, configSnapshot)
+             VALUES (?, ?, ?, ?)
+             ON DUPLICATE KEY UPDATE
+                enabled = COALESCE(VALUES(enabled), enabled),
+                lastAnalyzedAt = VALUES(lastAnalyzedAt),
+                configSnapshot = VALUES(configSnapshot),
+                updatedAt = NOW()`,
+            [
+                guildId,
+                data.enabled ?? 1,
+                data.lastAnalyzedAt ?? null,
+                data.configSnapshot ?? null,
+            ],
+        );
+    }
+
+    async logCopilotAction(guildId: string, action: string, details: string, success: boolean, error?: string): Promise<void> {
+        const id = (await import('node:crypto')).randomUUID();
+        await pool.query(
+            `INSERT INTO fg_copilot_logs (id, guildId, action, details, success, error)
+             VALUES (?, ?, ?, ?, ?, ?)`,
+            [id, guildId, action, details, success ? 1 : 0, error ?? null],
         );
     }
 }

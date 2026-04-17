@@ -86,7 +86,7 @@ export function createWebhookRoutes(client: BotClient) {
 
             client.webhooks.register(`${guildId}:${webhook.id}`, {
                 id: webhook.id,
-                token: webhook.token!,
+                token: webhook.token ?? '',
                 channelId,
             });
 

@@ -28,6 +28,9 @@ export const CacheKeys = {
         nukeWindow: (guildId: string, userId: string) => `fg:nuke:${guildId}:${userId}` as const,
         modActivity: (guildId: string) => `fg:modact:${guildId}` as const,
         spamWindow: (guildId: string, userId: string, channelId: string) => `fg:spam:${guildId}:${userId}:${channelId}` as const,
+        copilotMessageCount: (guildId: string) => `fg:copilot:count:${guildId}` as const,
+        copilotUniqueUsers: (guildId: string) => `fg:copilot:users:${guildId}` as const,
+        adaptiveCooldown: (guildId: string) => `fg:adaptive:cooldown:${guildId}` as const,
     },
 } as const;
 

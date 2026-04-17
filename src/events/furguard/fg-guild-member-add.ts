@@ -1,4 +1,4 @@
-import { ActionRowBuilder, ButtonBuilder, ButtonStyle, type GuildMember } from 'discord.js';
+import { ActionRowBuilder, ButtonBuilder, ButtonStyle, ChannelType, type GuildMember } from 'discord.js';
 import type { BotClient } from '../../bot.js';
 import { fgGuildRepo } from '../../db/repositories/fg-guild.repo.js';
 import { fgCoworkRepo } from '../../db/repositories/fg-cowork.repo.js';
@@ -6,10 +6,11 @@ import { fgProRepo } from '../../db/repositories/fg-pro.repo.js';
 import { fgRiskRepo } from '../../db/repositories/fg-risk.repo.js';
 import { fgModRepo } from '../../db/repositories/fg-mod.repo.js';
 import { CacheKeys } from '../../cache/keys.js';
-import { FG_ANTIRAID, FG_RISK, FG_MOD_ACTIONS } from '../../constants/furguard.js';
+import { FG_RISK, FG_MOD_ACTIONS } from '../../constants/furguard.js';
 import { createBrandedEmbed } from '../../lib/embed-builder.js';
 import { sendAuditLog } from '../../lib/fg-audit.js';
 import { broadcastAlert } from '../../lib/fg-cowork-broadcast.js';
+import { triggerMemberJoinSpike } from '../../lib/fg-copilot-triggers.js';
 import { createChildLogger } from '../../lib/logger.js';
 
 const log = createChildLogger({ module: 'fg-event:guildMemberAdd' });
@@ -39,7 +40,7 @@ export default {
     },
 };
 
-async function handleTrustSystem(member: GuildMember, client: BotClient): Promise<void> {
+async function handleTrustSystem(member: GuildMember, _client: BotClient): Promise<void> {
     try {
         const trustConfig = await fgProRepo.getTrustConfig(member.guild.id);
         if (!trustConfig || !trustConfig.enabled) return;
@@ -94,6 +95,14 @@ async function handleAntiRaid(member: GuildMember, client: BotClient): Promise<v
                 antiraidConfig.action,
             );
 
+            // Trigger Copilot analysis for member join spike
+            await triggerMemberJoinSpike(
+                member.guild.id,
+                recent.length,
+                antiraidConfig.windowSeconds / 60,
+                client,
+            );
+
             const embed = createBrandedEmbed()
                 .setColor(0xFF0000)
                 .setTitle('🚨 Raid Detectado')
@@ -122,7 +131,6 @@ async function handleAntiRaid(member: GuildMember, client: BotClient): Promise<v
             }
 
             if (antiraidConfig.action === 'lockdown') {
-                const { ChannelType } = await import('discord.js');
                 const channels = member.guild.channels.cache.filter(
                     ch => ch.type === ChannelType.GuildText,
                 );
@@ -214,7 +222,7 @@ async function handleHighRiskRejoin(member: GuildMember, client: BotClient): Pro
 
                     await owner.send({ embeds: [embed], components: [row] }).catch(() => {});
                 }
-            } catch (mdErr) {
+            } catch {
                 log.debug({ guildId, userId }, 'No se pudo notificar por MD al owner');
             }
 

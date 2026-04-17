@@ -65,7 +65,7 @@ export function startHealthServer(client: BotClient): void {
         });
     });
 
-    server.on('error', (err: any) => {
+    server.on('error', (err: NodeJS.ErrnoException) => {
         if (err.code === 'EADDRINUSE') {
             log.warn(`Puerto ${config.apiPort} en uso. Solo un shard correrá el servidor HTTP principal.`);
         } else {

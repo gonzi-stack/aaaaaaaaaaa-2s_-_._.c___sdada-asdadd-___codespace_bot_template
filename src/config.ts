@@ -38,7 +38,7 @@ export const config = Object.freeze({
         url: env('REDIS_URL', 'redis://localhost:6379'),
     }),
 
-    nodeEnv: (process.env['NODE_ENV'] === 'production' ? 'production' : 'development') as 'development' | 'production',
+    nodeEnv: process.env['NODE_ENV'] === 'production' ? 'production' : 'development',
     apiHost: env('API_HOST', '0.0.0.0'),
     apiPort: envInt('API_PORT', envInt('HEALTH_PORT', 25569)),
     apiAllowedIps: env('API_ALLOWED_IPS', '').split(',').map((ip) => ip.trim()).filter(Boolean),

@@ -15,9 +15,17 @@ export class GuildRepository {
         );
         if (rows.length === 0) return null;
         const row = rows[0]!;
+        let featuresVal: Record<string, boolean> = {};
+        if (typeof row['features'] === 'string') {
+            const parsed = JSON.parse(row['features']) as unknown;
+            featuresVal = parsed as Record<string, boolean>;
+        } else if (row['features'] && typeof row['features'] === 'object') {
+            featuresVal = row['features'] as Record<string, boolean>;
+        }
+
         return {
             ...row,
-            features: typeof row['features'] === 'string' ? JSON.parse(row['features']) : row['features'],
+            features: featuresVal,
         } as GuildSettings;
     }
 
